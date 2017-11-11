@@ -54,8 +54,10 @@ public class ChromeDevTools {
 
         driver = new RemoteWebDriver(service.getUrl(),crcapabilities);
         String wsURL = this.getWebSocketDebuggerUrl();
+        this.sendWSMessage(wsURL,this.buildGeoLocationMessage("27.1752868","78.040009"));
         this.sendWSMessage(wsURL,this.buildNetWorkEnableMessage());
         this.sendWSMessage(wsURL,this.buildBasicHttpAuthenticationMessage("admin","admin"));
+        driver.navigate().to("https://maps.google.com");
         driver.navigate().to("https://the-internet.herokuapp.com/basic_auth");
 
         ws.disconnect();
@@ -135,6 +137,11 @@ public class ChromeDevTools {
         return message;
     }
 
+    private String buildGeoLocationMessage(String latitude, String longitude){
+        String message = String.format("{\"id\":3,\"method\":\"Emulation.setGeolocationOverride\",\"params\":{\"latitude\":%s,\"longitude\":%s,\"accuracy\":100}}",latitude,longitude);
+        System.out.println(message);
+        return message;
+    }
     private String buildBasicHttpAuthenticationMessage(String username,String password){
         byte[] encodedBytes = Base64.encodeBase64(String.format("%s:%s",username,password).getBytes());
         String base64EncodedCredentials = new String(encodedBytes);
