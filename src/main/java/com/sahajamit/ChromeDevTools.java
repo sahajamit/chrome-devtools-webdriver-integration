@@ -25,7 +25,8 @@ public class ChromeDevTools {
 
     WebDriver driver;
     WebSocket ws = null;
-    final int messageTimeoutInSecs = 2;
+    final Object waitCoordinator = new Object();
+    final int messageTimeoutInSecs = 5;
 
     public static void main(String[] args) throws IOException, WebSocketException, InterruptedException {
         ChromeDevTools chromeDevTools = new ChromeDevTools();
@@ -105,15 +106,14 @@ public class ChromeDevTools {
     private void sendWSMessage(String url,String message) throws IOException, WebSocketException, InterruptedException {
         JSONObject jsonObject = new JSONObject(message);
         final int messageId = jsonObject.getInt("id");
-        final Object waitCoordinator = new Object();
         if(ws==null){
             ws = new WebSocketFactory()
                     .createSocket(url)
                     .addListener(new WebSocketAdapter() {
                         @Override
                         public void onTextMessage(WebSocket ws, String message) {
-                            // Received a response. Print the received message.
                             System.out.println(message);
+                            // Received a response. Print the received message.
                             if(new JSONObject(message).getInt("id")==messageId){
                                 synchronized (waitCoordinator) {
                                     waitCoordinator.notifyAll();
