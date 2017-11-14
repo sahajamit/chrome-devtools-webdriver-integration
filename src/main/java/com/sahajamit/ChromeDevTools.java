@@ -37,12 +37,11 @@ public class ChromeDevTools {
         ChromeOptions options = new ChromeOptions();
         options.setExperimentalOption("useAutomationExtension", false);
         options.addArguments(Arrays.asList("--start-maximized"));
-        options.setBinary("C:/Users/1531411/Desktop/TechnicalStuff/Chromium/latest/499951-63/chrome-win32/chrome.exe");
+        options.setBinary("<chromebinary path>");
 
         DesiredCapabilities crcapabilities = DesiredCapabilities.chrome();
         crcapabilities.setCapability(ChromeOptions.CAPABILITY, options);
         crcapabilities.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
-
 
         System.setProperty(ChromeDriverService.CHROME_DRIVER_LOG_PROPERTY, System.getProperty("user.dir") + "/target/chromedriver.log");
         System.setProperty(ChromeDriverService.CHROME_DRIVER_EXE_PROPERTY, System.getProperty("user.dir") + "/driver/chromedriver.exe");
@@ -57,10 +56,15 @@ public class ChromeDevTools {
         this.sendWSMessage(wsURL,this.buildGeoLocationMessage("27.1752868","78.040009"));
         this.sendWSMessage(wsURL,this.buildNetWorkEnableMessage());
         this.sendWSMessage(wsURL,this.buildBasicHttpAuthenticationMessage("admin","admin"));
-        driver.navigate().to("https://maps.google.com");
+        this.sendWSMessage(wsURL,this.buildRequestInterceptorEnabledMessage());
+        this.sendWSMessage(wsURL,this.buildRequestInterceptorPatternMessage("*","Document"));
+        driver.navigate().to("http://petstore.swagger.io/v2/swagger.json");
+        driver.navigate().to("https://www.maps.google.com");
         driver.navigate().to("https://the-internet.herokuapp.com/basic_auth");
+//        this.waitFor(5000);
 
         ws.disconnect();
+
         driver.close();
         driver.quit();
 
@@ -115,6 +119,9 @@ public class ChromeDevTools {
                         @Override
                         public void onTextMessage(WebSocket ws, String message) {
                             System.out.println(message);
+                            if(new JSONObject(message).getString("method").equals("Network.requestIntercepted   ")){
+                                System.out.println("found");
+                            }
                             // Received a response. Print the received message.
                             if(new JSONObject(message).getInt("id")==messageId){
                                 synchronized (waitCoordinator) {
@@ -142,6 +149,19 @@ public class ChromeDevTools {
         System.out.println(message);
         return message;
     }
+
+    private String buildRequestInterceptorEnabledMessage(){
+        String message = String.format("{\"id\":4,\"method\":\"Network.setRequestInterceptionEnabled\",\"params\":{\"enabled\":true}}");
+        System.out.println(message);
+        return message;
+    }
+
+    private String buildRequestInterceptorPatternMessage(String pattern, String documentType){
+        String message = String.format("{\"id\":5,\"method\":\"Network.setRequestInterception\",\"params\":{\"patterns\":[{\"urlPattern\":\"%s\",\"resourceType\":\"%s\"}]}}",pattern,documentType);
+        System.out.println(message);
+        return message;
+    }
+
     private String buildBasicHttpAuthenticationMessage(String username,String password){
         byte[] encodedBytes = Base64.encodeBase64(String.format("%s:%s",username,password).getBytes());
         String base64EncodedCredentials = new String(encodedBytes);
