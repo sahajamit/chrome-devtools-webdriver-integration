@@ -11,6 +11,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.logging.LogType;
+import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -18,10 +20,8 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.Scanner;
-import java.util.UUID;
+import java.util.*;
+import java.util.logging.Level;
 
 
 public class ChromeDevTools {
@@ -42,14 +42,21 @@ public class ChromeDevTools {
     }
 
     private void launchBrowser() throws IOException, WebSocketException, InterruptedException {
+        Map<String, Object> prefs=new HashMap<String,Object>();
+        //1-Allow, 2-Block, 0-default
+        prefs.put("profile.default_content_setting_values.notifications", 1);
+        LoggingPreferences logPrefs = new LoggingPreferences();
+        logPrefs.enable(LogType.BROWSER, Level.ALL);
         ChromeOptions options = new ChromeOptions();
         options.setExperimentalOption("useAutomationExtension", false);
-        options.addArguments(Arrays.asList("--start-maximized"));
+        options.addArguments(Arrays.asList("--start-maximized","--remote-debugging-port=9222"));
 //        options.setBinary("<chromebinary path>");
+        options.setExperimentalOption("prefs",prefs);
 
         DesiredCapabilities crcapabilities = DesiredCapabilities.chrome();
         crcapabilities.setCapability(ChromeOptions.CAPABILITY, options);
         crcapabilities.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
+        crcapabilities.setCapability(CapabilityType.LOGGING_PREFS, logPrefs);
 
         System.setProperty(ChromeDriverService.CHROME_DRIVER_LOG_PROPERTY, System.getProperty("user.dir") + "/target/chromedriver.log");
         System.setProperty(ChromeDriverService.CHROME_DRIVER_EXE_PROPERTY, System.getProperty("user.dir") + "/driver/chromedriver");
@@ -60,13 +67,25 @@ public class ChromeDevTools {
         service.start();
 
         driver = new RemoteWebDriver(service.getUrl(),crcapabilities);
-        wsURL = this.getWebSocketDebuggerUrl();
+        wsURL = String.format("ws://localhost:9222/devtools/page/%s",driver.getWindowHandle().replace("CDwindow-",""));
+//        wsURL = this.getWebSocketDebuggerUrl();
 //        this.sendWSMessage(wsURL,this.buildGeoLocationMessage("27.1752868","78.040009"));  Agra
 //        this.sendWSMessage(wsURL,this.buildGeoLocationMessage("37.422290","-122.084057"));  google HQ
-        this.sendWSMessage(wsURL,this.buildNetWorkEnableMessage());
+//        this.sendWSMessage(wsURL,this.buildNetWorkEnableMessage());
 //        this.sendWSMessage(wsURL,this.buildBasicHttpAuthenticationMessage("admin","admin"));
 //        this.sendWSMessage(wsURL,this.buildRequestInterceptorEnabledMessage());
-        this.sendWSMessage(wsURL,this.buildRequestInterceptorPatternMessage("*","Document"));
+//        this.sendWSMessage(wsURL,this.buildRequestInterceptorPatternMessage("*","Document"));
+
+        driver.navigate().to("https://gauntface.github.io/simple-push-demo/");
+        driver.findElement(By.cssSelector("span.mdl-switch__ripple-container")).click();
+        this.sendWSMessage(wsURL,this.buildEnableRuntimeMessage());
+        this.sendWSMessage(wsURL,this.buildEnableLogMessage());
+
+
+        this.sendWSMessage(wsURL,this.buildServiceWorkerEnableMessage());
+        String targetID = "";
+        this.sendWSMessage(wsURL,this.buildAttachToTargetMessage(targetID));
+
 
 
 
@@ -74,14 +93,20 @@ public class ChromeDevTools {
 //        this.sendWSMessage(wsURL,this.buildBasicHttpAuthenticationMessage("admin","admin"));
 //        driver.navigate().to("https://the-internet.herokuapp.com/basic_auth");
 
-        driver.navigate().to("http://petstore.swagger.io/v2/swagger.json");
+//        driver.navigate().to("http://petstore.swagger.io/v2/swagger.json");
 
-        this.sendWSMessage(wsURL,this.buildGetResponseBodyMessage(reqId));
+//        this.sendWSMessage(wsURL,this.buildGetResponseBodyMessage(reqId));
 
 //        driver.navigate().to("https://www.google.com.sg/maps");
         Thread.sleep(3000);
+        String registrationID = "0";
+        String data = "Sample Push";
+        this.sendWSMessage(wsURL,this.buildSendPushNotificationMessage("https://gauntface.github.io/simple-push-demo/",registrationID,data));
+        Thread.sleep(3000);
 //        driver.findElement(By.cssSelector("div.widget-mylocation-button-icon-common")).click();
-
+        driver.findElement(By.cssSelector("input#payload-textfield")).sendKeys("Auto Push");
+        driver.findElement(By.cssSelector("span.mdl-button__ripple-container")).click();
+        Thread.sleep(300000);
 //        this.waitFor(5000);
 
         ws.disconnect();
@@ -215,6 +240,13 @@ public class ChromeDevTools {
         return message;
     }
 
+    private String buildServiceWorkerEnableMessage(){
+        String message = "{\"id\":1111,\"method\":\"ServiceWorker.enable\"}";
+        System.out.println(message);
+        return message;
+    }
+
+
     private String buildGeoLocationMessage(String latitude, String longitude){
         String message = String.format("{\"id\":3,\"method\":\"Emulation.setGeolocationOverride\",\"params\":{\"latitude\":%s,\"longitude\":%s,\"accuracy\":100}}",latitude,longitude);
         System.out.println(message);
@@ -259,6 +291,43 @@ public class ChromeDevTools {
         System.out.println(message);
         return message;
     }
+
+    private String buildSendPushNotificationMessage(String origin, String registrationId, String data){
+        String message = String.format("{\"id\":123,\"method\":\"ServiceWorker.deliverPushMessage\",\"params\":{\"origin\":\"%s\",\"registrationId\":\"%s\",\"data\":\"%s\"}}",origin,registrationId,data);
+        System.out.println(message);
+        return message;
+    }
+
+    private String buildSendObservingPushMessage(){
+        int id = getDynamicID(300,400);
+        String message = String.format("{\"id\":%d,\"method\":\"BackgroundService.clearEvents\",\"params\":{\"service\":\"backgroundFetch\"}}",id);
+        System.out.println(message);
+        return message;
+    }
+
+    private String buildEnableLogMessage(){
+        int id = getDynamicID(1,400);
+        String message = String.format("{\"id\":%d,\"method\":\"Log.enable\"}",id);
+        System.out.println(message);
+        return message;
+    }
+
+    private String buildEnableRuntimeMessage(){
+        int id = getDynamicID(1,400);
+        String message = String.format("{\"id\":%d,\"method\":\"Runtime.enable\"}",id);
+        System.out.println(message);
+        return message;
+    }
+
+    private String buildAttachToTargetMessage(String targetId){
+        int id = getDynamicID(300,400);
+        String message = String.format("{\"id\":%d,\"method\":\"Target.attachToTarget\",\"params\":{\"targetId\":\"%s\"}}",id,targetId);
+        System.out.println(message);
+        return message;
+    }
+
+
+
 
     private void waitFor(long time){
         try {
