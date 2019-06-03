@@ -7,14 +7,13 @@ import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import com.sahajamit.utils.SSLUtil;
+import com.sahajamit.utils.Utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.Objects;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class CDTClient {
     private String wsUrl;
@@ -65,9 +64,13 @@ public class CDTClient {
     }
 
     public String getResponseMessage(String methodName) throws InterruptedException {
+        return getResponseMessage(methodName,5);
+    }
+
+    public String getResponseMessage(String methodName, int timeoutInSecs) throws InterruptedException {
         try{
             while(true){
-                String message = blockingQueue.poll(5, TimeUnit.SECONDS);
+                String message = blockingQueue.poll(timeoutInSecs, TimeUnit.SECONDS);
                 if(Objects.isNull(message))
                     throw new RuntimeException(String.format("No message received with this method name : '%s'",methodName));
                 JSONObject jsonObject = new JSONObject(message);
@@ -104,6 +107,21 @@ public class CDTClient {
         }catch (Exception e1){
             throw e1;
         }
+    }
+
+    public void mockResponse(String mockMessage){
+        new Thread(() -> {
+            try{
+                String message = this.getResponseMessage("Network.requestIntercepted",5);
+                JSONObject jsonObject = new JSONObject(message);
+                String interceptionId = jsonObject.getJSONObject("params").getString("interceptionId");
+                int id = Utils.getInstance().getDynamicID();
+                this.sendMessage(MessageBuilder.buildGetContinueInterceptedRequestMessage(id,interceptionId,mockMessage));
+                return;
+            }catch (Exception e){
+                //do nothing
+            }
+        }).start();
     }
 
     public void disconnect(){

@@ -20,11 +20,12 @@ public class DemoTest {
     private String os;
     private Utils utils;
     private UIUtils uiUtils;
-    public static void main(String[] args) throws IOException, WebSocketException, InterruptedException {
+    public static void main(String[] args) throws Exception {
         DemoTest demoTest = new DemoTest();
 //        demoTest.doFakeGeoLocation();
+//        demoTest.doNetworkTracking();
 
-        demoTest.doNetworkTracking();
+        demoTest.doResponseMocking();
     }
 
     public DemoTest() {
@@ -62,6 +63,19 @@ public class DemoTest {
         cdtClient.sendMessage(MessageBuilder.buildGetResponseBodyMessage (id2,reqId));
         String networkResponse = cdtClient.getResponseBodyMessage(id2);
         utils.waitFor(1);
+        cdtClient.disconnect();
+        utils.stopChrome();
+    }
+
+    private void doResponseMocking() throws Exception {
+        driver = utils.launchBrowser();
+        wsURL = utils.getWebSocketDebuggerUrl();
+        CDTClient cdtClient = new CDTClient(wsURL);
+        int id = Utils.getInstance().getDynamicID();
+        cdtClient.sendMessage(MessageBuilder.buildRequestInterceptorPatternMessage (id,"*","Document"));
+        cdtClient.mockResponse("This is mocked!!!");
+        driver.navigate().to("http://petstore.swagger.io/v2/swagger.json");
+        utils.waitFor(3);
         cdtClient.disconnect();
         utils.stopChrome();
     }

@@ -20,19 +20,20 @@ public class MessageBuilder {
         return message;
     }
 
-    private String getRequestId(String message){
-        String reqId = "";
-        try{
-            JSONObject jsonObject = new JSONObject(message);
-            String method = jsonObject.getString("method");
-            if(method.equalsIgnoreCase("Network.requestWillBeSent")){
-                reqId = jsonObject.getJSONObject("params").getString("requestId");
-                System.out.println("Extracted Request ID is: " + reqId);
-            }
-        }catch (Exception e){
-            throw new RuntimeException("Error in reading the message: ", e);
-        }
-        return reqId;
+    public static String buildRequestInterceptorPatternMessage(int id, String pattern, String documentType){
+        String message = String.format("{\"id\":%s,\"method\":\"Network.setRequestInterception\",\"params\":{\"patterns\":[{\"urlPattern\":\"%s\",\"resourceType\":\"%s\",\"interceptionStage\":\"HeadersReceived\"}]}}",id,pattern,documentType);
+        return message;
+    }
+
+    public static String buildGetResponseBodyForInterceptionMessage(int id, String interceptionId){
+        String message = String.format("{\"id\":%s,\"method\":\"Network.getResponseBodyForInterception\",\"params\":{\"interceptionId\":\"%s\"}}",id,interceptionId);
+        return message;
+    }
+
+    public static String buildGetContinueInterceptedRequestMessage(int id, String interceptionId, String response){
+        String encodedResponse = new String(Base64.encodeBase64(response.getBytes()));
+        String message = String.format("{\"id\":%s,\"method\":\"Network.continueInterceptedRequest\",\"params\":{\"interceptionId\":\"%s\",\"rawResponse\":\"%s\"}}",id,interceptionId,encodedResponse);
+        return message;
     }
 
 //    private void getRequestId(String message){
@@ -89,11 +90,6 @@ public class MessageBuilder {
         return message;
     }
 
-    private String buildRequestInterceptorPatternMessage(String pattern, String documentType){
-        String message = String.format("{\"id\":5,\"method\":\"Network.setRequestInterception\",\"params\":{\"patterns\":[{\"urlPattern\":\"%s\",\"resourceType\":\"%s\",\"interceptionStage\":\"HeadersReceived\"}]}}",pattern,documentType);
-        System.out.println(message);
-        return message;
-    }
 
     private String buildBasicHttpAuthenticationMessage(String username,String password){
         byte[] encodedBytes = Base64.encodeBase64(String.format("%s:%s",username,password).getBytes());
@@ -105,18 +101,7 @@ public class MessageBuilder {
 
 
 
-    private String buildGetResponseBodyForInterceptionMessage(int id, String interceptionId){
-        String message = String.format("{\"id\":%s,\"method\":\"Network.getResponseBodyForInterception\",\"params\":{\"interceptionId\":\"%s\"}}",id,interceptionId);
-        System.out.println(message);
-        return message;
-    }
 
-    private String buildGetContinueInterceptedRequestMessage(int id, String interceptionId, String response){
-        String encodedResponse = new String(Base64.encodeBase64(response.getBytes()));
-        String message = String.format("{\"id\":%s,\"method\":\"Network.continueInterceptedRequest\",\"params\":{\"interceptionId\":\"%s\",\"rawResponse\":\"%s\"}}",id,interceptionId,encodedResponse);
-        System.out.println(message);
-        return message;
-    }
 
     private String buildSendPushNotificationMessage(String origin, String registrationId, String data){
         String message = String.format("{\"id\":123,\"method\":\"ServiceWorker.deliverPushMessage\",\"params\":{\"origin\":\"%s\",\"registrationId\":\"%s\",\"data\":\"%s\"}}",origin,registrationId,data);
