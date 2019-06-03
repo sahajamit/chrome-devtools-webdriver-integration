@@ -12,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Objects;
 import java.util.concurrent.*;
 
@@ -19,7 +20,7 @@ public class CDTClient {
     private String wsUrl;
     private WebSocket ws = null;
     private WebSocketFactory factory;
-    private BlockingQueue<String> blockingQueue = new LinkedBlockingDeque<String>();
+    private BlockingQueue<String> blockingQueue = new LinkedBlockingDeque<String>(10000);
     public CDTClient(String wsURL){
         factory = new WebSocketFactory();
         SSLUtil.turnOffSslChecking(factory);
@@ -118,6 +119,25 @@ public class CDTClient {
                 int id = Utils.getInstance().getDynamicID();
                 this.sendMessage(MessageBuilder.buildGetContinueInterceptedRequestMessage(id,interceptionId,mockMessage));
                 return;
+            }catch (Exception e){
+                //do nothing
+            }
+        }).start();
+    }
+
+    public void mockFunResponse(String encodedMessage){
+        new Thread(() -> {
+            try{
+                while(true){
+                    String message = this.getResponseMessage("Network.requestIntercepted",10);
+                    JSONObject jsonObject = new JSONObject(message);
+                    String interceptionId = jsonObject.getJSONObject("params").getString("interceptionId");
+//                    int id1 = Utils.getInstance().getDynamicID();
+//                    this.sendMessage(MessageBuilder.buildGetResponseBodyForInterceptionMessage(id1,interceptionId));
+//                    String interceptedResponse = this.getResponseBodyMessage(id1);
+                    int id = Utils.getInstance().getDynamicID();
+                    this.sendMessage(MessageBuilder.buildGetContinueInterceptedRequestEncodedMessage(id,interceptionId,encodedMessage));
+                }
             }catch (Exception e){
                 //do nothing
             }

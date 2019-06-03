@@ -6,11 +6,14 @@ import com.sahajamit.messaging.CDTClient;
 import com.sahajamit.messaging.MessageBuilder;
 import com.sahajamit.utils.UIUtils;
 import com.sahajamit.utils.Utils;
+import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Base64;
 
 
 public class DemoTest {
@@ -24,8 +27,8 @@ public class DemoTest {
         DemoTest demoTest = new DemoTest();
 //        demoTest.doFakeGeoLocation();
 //        demoTest.doNetworkTracking();
-
-        demoTest.doResponseMocking();
+//        demoTest.doResponseMocking();
+        demoTest.doFunMocking();
     }
 
     public DemoTest() {
@@ -76,6 +79,23 @@ public class DemoTest {
         cdtClient.mockResponse("This is mocked!!!");
         driver.navigate().to("http://petstore.swagger.io/v2/swagger.json");
         utils.waitFor(3);
+        cdtClient.disconnect();
+        utils.stopChrome();
+    }
+
+    private void doFunMocking() throws Exception {
+        byte[] fileContent = FileUtils.readFileToByteArray(new File(System.getProperty("user.dir") + "/data/cat.png"));
+        String encodedString = Base64.getEncoder().encodeToString(fileContent);
+        driver = utils.launchBrowser();
+        wsURL = utils.getWebSocketDebuggerUrl();
+        CDTClient cdtClient = new CDTClient(wsURL);
+        int id = Utils.getInstance().getDynamicID();
+        cdtClient.sendMessage(MessageBuilder.buildRequestInterceptorPatternMessage (id,"*","Image"));
+        cdtClient.mockFunResponse(encodedString);
+//        driver.navigate().to("https://www.seleniumhq.org");
+        driver.navigate().to("https://sg.carousell.com/");
+        utils.waitFor(30);
+        uiUtils.takeScreenShot();
         cdtClient.disconnect();
         utils.stopChrome();
     }

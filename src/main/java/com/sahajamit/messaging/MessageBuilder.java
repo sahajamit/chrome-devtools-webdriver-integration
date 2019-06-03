@@ -20,8 +20,8 @@ public class MessageBuilder {
         return message;
     }
 
-    public static String buildRequestInterceptorPatternMessage(int id, String pattern, String documentType){
-        String message = String.format("{\"id\":%s,\"method\":\"Network.setRequestInterception\",\"params\":{\"patterns\":[{\"urlPattern\":\"%s\",\"resourceType\":\"%s\",\"interceptionStage\":\"HeadersReceived\"}]}}",id,pattern,documentType);
+    public static String buildRequestInterceptorPatternMessage(int id, String pattern, String resourceType){
+        String message = String.format("{\"id\":%s,\"method\":\"Network.setRequestInterception\",\"params\":{\"patterns\":[{\"urlPattern\":\"%s\",\"resourceType\":\"%s\",\"interceptionStage\":\"HeadersReceived\"}]}}",id,pattern,resourceType);
         return message;
     }
 
@@ -32,6 +32,11 @@ public class MessageBuilder {
 
     public static String buildGetContinueInterceptedRequestMessage(int id, String interceptionId, String response){
         String encodedResponse = new String(Base64.encodeBase64(response.getBytes()));
+        String message = String.format("{\"id\":%s,\"method\":\"Network.continueInterceptedRequest\",\"params\":{\"interceptionId\":\"%s\",\"rawResponse\":\"%s\"}}",id,interceptionId,encodedResponse);
+        return message;
+    }
+
+    public static String buildGetContinueInterceptedRequestEncodedMessage(int id, String interceptionId, String encodedResponse){
         String message = String.format("{\"id\":%s,\"method\":\"Network.continueInterceptedRequest\",\"params\":{\"interceptionId\":\"%s\",\"rawResponse\":\"%s\"}}",id,interceptionId,encodedResponse);
         return message;
     }
