@@ -101,6 +101,11 @@ public class Utils {
         return r.nextInt((max - min) + 1) + min;
     }
 
+    public String getSWURL(String wsURL, String targetID){
+        String[] arr = wsURL.split("page/");
+        String id = arr[1];
+        return wsURL.replace(id,targetID);
+    }
     public String getWebSocketDebuggerUrl() throws IOException {
         String webSocketDebuggerUrl = "";
         File file = new File(System.getProperty("user.dir") + "/target/chromedriver.log");

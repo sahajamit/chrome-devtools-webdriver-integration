@@ -8,6 +8,7 @@ import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import com.sahajamit.utils.SSLUtil;
 import com.sahajamit.utils.Utils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -142,6 +143,27 @@ public class CDTClient {
                 //do nothing
             }
         }).start();
+    }
+
+    public ServiceWorker getServiceWorker(String workerURL) throws InterruptedException {
+        while(true){
+            String message = getResponseMessage("ServiceWorker.workerVersionUpdated",5);
+            if(Objects.isNull(message))
+                return null;
+            JSONObject jsonObject = new JSONObject(message);
+            JSONArray jsonArray = jsonObject.getJSONObject("params").getJSONArray("versions");
+            try{
+                String scriptURL = jsonArray.getJSONObject(0).getString("scriptURL");
+                if(scriptURL.contains(workerURL)){
+                    String targetId = jsonArray.getJSONObject(0).getString("targetId");
+                    String versionId = jsonArray.getJSONObject(0).getString("versionId");
+                    String registrationId = jsonArray.getJSONObject(0).getString("registrationId");
+                    return new ServiceWorker(versionId,registrationId,targetId);
+                }
+            }catch (Exception e){
+                //do nothing
+            }
+        }
     }
 
     public void disconnect(){

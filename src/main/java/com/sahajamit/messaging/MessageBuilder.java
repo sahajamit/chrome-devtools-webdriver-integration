@@ -41,53 +41,38 @@ public class MessageBuilder {
         return message;
     }
 
-//    private void getRequestId(String message){
-//        if(!reqId.equalsIgnoreCase(""))
-//            return;
-//        try{
-//            JSONObject jsonObject = new JSONObject(message);
-//            String method = jsonObject.getString("method");
-//            if(method.equalsIgnoreCase("Network.requestWillBeSent")){
-//                reqId = jsonObject.getJSONObject("params").getString("requestId");
-//                System.out.println("Extracted Request ID is: " + reqId);
-//            }
-//        }catch (Exception e){
-//            throw new RuntimeException("Error in reading the message: ", e);
-//        }
-//    }
-//
-//    private void getInterceptionId(String message){
-//        if(!interceptionId.equalsIgnoreCase(""))
-//            return;
-//        try{
-//            JSONObject jsonObject = new JSONObject(message);
-//            String method = jsonObject.getString("method");
-//            if(method.equalsIgnoreCase("Network.requestIntercepted")){
-//                interceptionId = jsonObject.getJSONObject("params").getString("interceptionId");
-//                System.out.println("Interception ID is: " + interceptionId);
-//                interceptionReqId = Utils.getInstance().getDynamicID();
-//                this.sendWSMessage(wsURL,this.buildGetResponseBodyForInterceptionMessage(interceptionReqId,interceptionId));
-//            }
-//        }catch (Exception e){
-//            throw new RuntimeException("Error in reading the message: ", e);
-//        }
-//    }
-//
-//    private void overRideResponse(String response){
-//        try{
-//            response = "This is dummy response";
-//            this.sendWSMessage(wsURL,this.buildGetContinueInterceptedRequestMessage(interceptionReqId,interceptionId,response));
-//        }catch (Exception e){
-//            throw new RuntimeException("Error in sending the message: ", e);
-//        }
-//
-//    }
-
-    private String buildServiceWorkerEnableMessage(){
-        String message = "{\"id\":1111,\"method\":\"ServiceWorker.enable\"}";
-        System.out.println(message);
+    public static String buildServiceWorkerEnableMessage(int id){
+        String message = String.format("{\"id\":%s,\"method\":\"ServiceWorker.enable\"}",id);
         return message;
     }
+
+    public static String buildServiceWorkerInspectMessage(int id, String versionId){
+        String message = String.format("{\"id\":%s,\"method\":\"ServiceWorker.inspectWorker\",\"params\":{\"versionId\":\"%s\"}}",id,"versionId");
+        return message;
+    }
+
+    public static String buildEnableLogMessage(int id){
+        String message = String.format("{\"id\":%d,\"method\":\"Log.enable\"}",id);
+        return message;
+    }
+
+    public static String buildEnableRuntimeMessage(int id){
+        String message = String.format("{\"id\":%d,\"method\":\"Runtime.enable\"}",id);
+        return message;
+    }
+
+    public static String buildSendPushNotificationMessage(int id, String origin, String registrationId, String data){
+        String message = String.format("{\"id\":%s,\"method\":\"ServiceWorker.deliverPushMessage\",\"params\":{\"origin\":\"%s\",\"registrationId\":\"%s\",\"data\":\"%s\"}}",id,origin,registrationId,data);
+        return message;
+    }
+
+    public static String buildObserveBackgroundServiceMessage(int id){
+        String message = String.format("{\"id\":%s,\"method\":\"BackgroundService.startObserving\",\"params\":{\"service\":\"%s\"}}",id,"pushMessaging");
+        return message;
+    }
+
+
+
 
     private String buildRequestInterceptorEnabledMessage(){
         String message = String.format("{\"id\":4,\"method\":\"Network.setRequestInterception\",\"params\":{\"enabled\":true}}");
@@ -106,14 +91,6 @@ public class MessageBuilder {
 
 
 
-
-
-    private String buildSendPushNotificationMessage(String origin, String registrationId, String data){
-        String message = String.format("{\"id\":123,\"method\":\"ServiceWorker.deliverPushMessage\",\"params\":{\"origin\":\"%s\",\"registrationId\":\"%s\",\"data\":\"%s\"}}",origin,registrationId,data);
-        System.out.println(message);
-        return message;
-    }
-
     private String buildSendObservingPushMessage(){
         int id = Utils.getInstance().getDynamicID();
         String message = String.format("{\"id\":%d,\"method\":\"BackgroundService.clearEvents\",\"params\":{\"service\":\"backgroundFetch\"}}",id);
@@ -121,19 +98,7 @@ public class MessageBuilder {
         return message;
     }
 
-    private String buildEnableLogMessage(){
-        int id = Utils.getInstance().getDynamicID();
-        String message = String.format("{\"id\":%d,\"method\":\"Log.enable\"}",id);
-        System.out.println(message);
-        return message;
-    }
 
-    private String buildEnableRuntimeMessage(){
-        int id = Utils.getInstance().getDynamicID();
-        String message = String.format("{\"id\":%d,\"method\":\"Runtime.enable\"}",id);
-        System.out.println(message);
-        return message;
-    }
 
     private String buildAttachToTargetMessage(String targetId){
         int id = Utils.getInstance().getDynamicID();

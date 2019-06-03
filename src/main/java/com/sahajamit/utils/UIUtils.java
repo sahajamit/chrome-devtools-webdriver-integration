@@ -59,4 +59,19 @@ public class UIUtils {
             throw new IllegalStateException("Error taking screenshot");
         }
     }
+
+    public Object executeJavaScript(String script) {
+        Object obj = ((JavascriptExecutor)driver).executeScript(script,new Object[0]);
+        return obj;
+    }
+
+    public Object executeJavaScript(String script, WebElement element) {
+        Object obj = ((JavascriptExecutor)driver).executeScript(script, new Object[]{element});
+        return obj;
+    }
+
+    public void scrollToElement(WebElement element) {
+        this.executeJavaScript("arguments[0].scrollIntoView(true);", element);
+    }
+
 }
