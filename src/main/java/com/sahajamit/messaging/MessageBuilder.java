@@ -71,6 +71,25 @@ public class MessageBuilder {
         return message;
     }
 
+    public static String buildGetBrowserContextMessage(int id){
+        String message = String.format("{\"id\":%d,\"method\":\"Target.getBrowserContexts\"}",id);
+        return message;
+    }
+
+    public static String buildClearBrowserCacheMessage(int id){
+        String message = String.format("{\"id\":%d,\"method\":\"Network.clearBrowserCache\"}",id);
+        return message;
+    }
+
+    public static String buildClearBrowserCookiesMessage(int id){
+        String message = String.format("{\"id\":%d,\"method\":\"Network.clearBrowserCookies\"}",id);
+        return message;
+    }
+
+    public static String buildClearDataForOriginMessage(int id, String url){
+        String message = String.format("{\"id\":%s,\"method\":\"Storage.clearDataForOrigin\",\"params\":{\"origin\":\"%s\",\"storageTypes\":\"all\"}}",id,url);
+        return message;
+    }
 
 
 

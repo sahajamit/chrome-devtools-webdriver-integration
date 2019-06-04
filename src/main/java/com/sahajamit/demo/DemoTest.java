@@ -31,7 +31,8 @@ public class DemoTest {
 //        demoTest.doNetworkTracking();
 //        demoTest.doResponseMocking();
 //        demoTest.doFunMocking();
-        demoTest.doServerWorkerTesting();
+//        demoTest.doServerWorkerTesting();
+        demoTest.doClearSiteData();
     }
 
     public DemoTest() {
@@ -110,7 +111,6 @@ public class DemoTest {
         CDTClient cdtClient = new CDTClient(wsURL);
         int id = Utils.getInstance().getDynamicID();
         cdtClient.sendMessage(MessageBuilder.buildServiceWorkerEnableMessage(id));
-//        driver.navigate().to("https://gauntface.github.io/simple-push-demo/");
         driver.navigate().to(URL);
         utils.waitFor(2);
 //        uiUtils.findElement(By.cssSelector("span.mdl-switch__ripple-container"),5).click();
@@ -150,6 +150,20 @@ public class DemoTest {
                 "                  return notifications;\n" +
                 "              })\n" +
                 "          });");
+        cdtClient.disconnect();
+        utils.stopChrome();
+    }
+
+    private void doClearSiteData() throws Exception {
+        String URL = "https://framework.realtime.co/demo/web-push";
+        driver = utils.launchBrowser();
+        wsURL = utils.getWebSocketDebuggerUrl();
+        CDTClient cdtClient = new CDTClient(wsURL);
+        driver.navigate().to(URL);
+        int id = Utils.getInstance().getDynamicID();
+        cdtClient.sendMessage(MessageBuilder.buildClearBrowserCookiesMessage(id));
+        cdtClient.sendMessage(MessageBuilder.buildClearDataForOriginMessage(id,"https://framework.realtime.co"));
+        utils.waitFor(3);
         cdtClient.disconnect();
         utils.stopChrome();
     }
