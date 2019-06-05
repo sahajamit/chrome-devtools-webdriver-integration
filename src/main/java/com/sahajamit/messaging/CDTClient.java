@@ -21,7 +21,7 @@ public class CDTClient {
     private String wsUrl;
     private WebSocket ws = null;
     private WebSocketFactory factory;
-    private BlockingQueue<String> blockingQueue = new LinkedBlockingDeque<String>(10000);
+    private BlockingQueue<String> blockingQueue = new LinkedBlockingDeque<String>(100000);
     public CDTClient(String wsURL){
         factory = new WebSocketFactory();
         SSLUtil.turnOffSslChecking(factory);
