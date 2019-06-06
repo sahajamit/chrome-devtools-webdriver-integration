@@ -5,8 +5,13 @@ import org.apache.commons.codec.binary.Base64;
 import org.json.JSONObject;
 
 public class MessageBuilder {
-    public static String buildGeoLocationMessage(int id, String latitude, String longitude){
-        String message = String.format("{\"id\":%s,\"method\":\"Emulation.setGeolocationOverride\",\"params\":{\"latitude\":%s,\"longitude\":%s,\"accuracy\":100}}",id,latitude,longitude);
+    public static String buildGeoLocationMessage(int id, double latitude, double longitude){
+        Message msg = new Message(id,"Emulation.setGeolocationOverride");
+        msg.addParam("latitude",latitude);
+        msg.addParam("longitude",longitude);
+        msg.addParam("accuracy",100);
+        String message = msg.toJson();
+//        String message = String.format("{\"id\":%s,\"method\":\"Emulation.setGeolocationOverride\",\"params\":{\"latitude\":%s,\"longitude\":%s,\"accuracy\":100}}",id,latitude,longitude);
         return message;
     }
 
@@ -88,6 +93,17 @@ public class MessageBuilder {
 
     public static String buildClearDataForOriginMessage(int id, String url){
         String message = String.format("{\"id\":%s,\"method\":\"Storage.clearDataForOrigin\",\"params\":{\"origin\":\"%s\",\"storageTypes\":\"all\"}}",id,url);
+        return message;
+    }
+
+    public static String buildTakeElementScreenShotMessage(int id, long x, long y, long height, long width, int scale){
+        String message = String.format("{\"id\":%s,\"method\":\"Page.captureScreenshot\",\"params\":{\"clip\":{\"x\":%s,\"y\":%s,\"width\":%s,\"height\":%s,\"scale\":%s}}}",id,x,y,width,height,scale);
+        return message;
+    }
+    public static String buildTakePageScreenShotMessage(int id){
+        Message msg = new Message(id,"Page.captureScreenshot");
+        String message = msg.toJson();
+//        String message = String.format("{\"id\":%s,\"method\":\"Page.captureScreenshot\"}",id);
         return message;
     }
 

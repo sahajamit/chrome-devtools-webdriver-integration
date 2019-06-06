@@ -6,8 +6,10 @@ import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
+import com.sahajamit.Exceptions.MessageTimeOutException;
 import com.sahajamit.utils.SSLUtil;
 import com.sahajamit.utils.Utils;
+import com.sun.xml.internal.ws.protocol.xml.XMLMessageException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,12 +19,12 @@ import java.util.Base64;
 import java.util.Objects;
 import java.util.concurrent.*;
 
-public class CDTClient {
+public class CDPClient {
     private String wsUrl;
     private WebSocket ws = null;
     private WebSocketFactory factory;
     private BlockingQueue<String> blockingQueue = new LinkedBlockingDeque<String>(100000);
-    public CDTClient(String wsURL){
+    public CDPClient(String wsURL){
         factory = new WebSocketFactory();
         SSLUtil.turnOffSslChecking(factory);
         factory.setVerifyHostname(false);
@@ -111,6 +113,27 @@ public class CDTClient {
         }
     }
 
+    public String getResponseDataMessage(int id) throws Exception {
+        return getResponseMessage(id,"data");
+    }
+
+    public String getResponseMessage(int id, String dataType) throws InterruptedException, MessageTimeOutException {
+        while(true){
+            String message = blockingQueue.poll(10, TimeUnit.SECONDS);
+            if(Objects.isNull(message))
+                throw new MessageTimeOutException(String.format("No message received with this id : '%s'",id));
+            JSONObject jsonObject = new JSONObject(message);
+            try{
+                int methodId = jsonObject.getInt("id");
+                if(id == methodId){
+                    return jsonObject.getJSONObject("result").getString(dataType);
+                }
+            }catch (JSONException e){
+                //do nothing
+            }
+        }
+    }
+
     public void mockResponse(String mockMessage){
         new Thread(() -> {
             try{
@@ -145,20 +168,25 @@ public class CDTClient {
         }).start();
     }
 
-    public ServiceWorker getServiceWorker(String workerURL) throws InterruptedException {
+    public ServiceWorker getServiceWorker(String workerURL, int timeoutInSecs, String expectedStatus) throws InterruptedException {
         while(true){
-            String message = getResponseMessage("ServiceWorker.workerVersionUpdated",5);
+            String message = getResponseMessage("ServiceWorker.workerVersionUpdated",timeoutInSecs);
             if(Objects.isNull(message))
                 return null;
             JSONObject jsonObject = new JSONObject(message);
             JSONArray jsonArray = jsonObject.getJSONObject("params").getJSONArray("versions");
             try{
                 String scriptURL = jsonArray.getJSONObject(0).getString("scriptURL");
-                if(scriptURL.contains(workerURL)){
+                String status = jsonArray.getJSONObject(0).getString("status");
+                if(scriptURL.contains(workerURL) && status.equalsIgnoreCase(expectedStatus)){
                     String targetId = jsonArray.getJSONObject(0).getString("targetId");
                     String versionId = jsonArray.getJSONObject(0).getString("versionId");
                     String registrationId = jsonArray.getJSONObject(0).getString("registrationId");
-                    return new ServiceWorker(versionId,registrationId,targetId);
+                    String runningStatus = jsonArray.getJSONObject(0).getString("registrationId");
+                    ServiceWorker serviceWorker = new ServiceWorker(versionId,registrationId,targetId);
+                    serviceWorker.setRunningStatus(runningStatus);
+                    serviceWorker.setStatus(status);
+                    return serviceWorker;
                 }
             }catch (Exception e){
                 //do nothing

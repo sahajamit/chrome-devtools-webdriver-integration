@@ -45,8 +45,8 @@ public class UIUtils {
     public void takeScreenShot() {
         try {
             String start_time = (new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")).format(new Date());
-            String imageName = "img_" + start_time + ".png";
-            File imageFolder = new File(System.getProperty("user.dir") + "/target/screenshots");
+            String imageName = "selenium_img_" + start_time + ".png";
+            File imageFolder = new File(System.getProperty("user.dir") + "/target");
             if (!imageFolder.exists()) {
                 imageFolder.mkdir();
             }
