@@ -33,7 +33,11 @@ public class Utils {
         return instance.get();
     }
 
-    public WebDriver launchBrowser() throws IOException, WebSocketException, InterruptedException {
+    public WebDriver launchBrowser() throws IOException {
+        return launchBrowser(false);
+    }
+
+    public WebDriver launchBrowser(boolean isHeadless) throws IOException {
         os = System.getProperty("os.name").toLowerCase();
         Map<String, Object> prefs=new HashMap<String,Object>();
         //1-Allow, 2-Block, 0-default
@@ -43,6 +47,9 @@ public class Utils {
         ChromeOptions options = new ChromeOptions();
         options.setExperimentalOption("useAutomationExtension", false);
         options.addArguments(Arrays.asList("--start-maximized"));
+        if(isHeadless){
+            options.addArguments(Arrays.asList("--headless","--disable-gpu"));
+        }
 //        options.addArguments(Arrays.asList("--start-maximized","--remote-debugging-port=9222"));
 //        options.setBinary("<chromebinary path>");
         options.setExperimentalOption("prefs",prefs);
