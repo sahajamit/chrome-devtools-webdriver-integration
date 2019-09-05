@@ -4,6 +4,7 @@ import com.neovisionaries.ws.client.WebSocketException;
 import com.sahajamit.messaging.CDPClient;
 import com.sahajamit.messaging.MessageBuilder;
 import com.sahajamit.messaging.ServiceWorker;
+import com.sahajamit.utils.UINotificationService;
 import com.sahajamit.utils.UIUtils;
 import com.sahajamit.utils.Utils;
 import org.apache.commons.io.FileUtils;
@@ -15,19 +16,22 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeDriverService;
+import org.openqa.selenium.chrome.ChromeOptions;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
-import java.util.Date;
+import java.util.*;
 
 public class DemoTests {
     private WebDriver driver;
     private String wsURL;    private Utils utils;
     private UIUtils uiUtils;
     private CDPClient CDPClient;
+    private ChromeDriverService chromeDriverService;
 
     @Before
     public void beforeTest(){
@@ -37,8 +41,11 @@ public class DemoTests {
 
     @After
     public void afterTest(){
-        CDPClient.disconnect();
+        if(!Objects.isNull(CDPClient))
+            CDPClient.disconnect();
         utils.stopChrome();
+        if(!Objects.isNull(chromeDriverService))
+            chromeDriverService.stop();
     }
 
     @Test
@@ -57,7 +64,7 @@ public class DemoTests {
 
     @Test
     public void doNetworkTracking() throws IOException, WebSocketException, InterruptedException {
-        driver = utils.launchBrowser();
+        driver = utils.launchBrowser(true);
         wsURL = utils.getWebSocketDebuggerUrl();
         CDPClient = new CDPClient(wsURL);
         int id = Utils.getInstance().getDynamicID();
@@ -72,6 +79,7 @@ public class DemoTests {
         String networkResponse = CDPClient.getResponseBodyMessage(id2);
         System.out.println("Here is the network Response: " + networkResponse);
         utils.waitFor(1);
+        uiUtils.takeScreenShot();
     }
 
     @Test
@@ -199,5 +207,25 @@ public class DemoTests {
         elem.click();
         utils.waitFor(3);
         utils.waitFor(60);
+    }
+
+    @Test
+    public void doWebNotificationTesting() throws Exception {
+        driver = utils.launchBrowser();
+        driver.navigate().to("https://pushjs.org/#");
+        UINotificationService uiNotificationService = UINotificationService.getInstance(driver);
+        uiNotificationService.startListener();
+        driver.findElement(By.id("demo_button")).click();
+        utils.waitFor(2);
+
+        Map<String,String> notificationFilter = new HashMap<>();
+        notificationFilter.put("title", "Hello world!");
+        boolean flag = uiNotificationService.isNotificationPresent(notificationFilter);
+        uiNotificationService.stopListener();
+    }
+
+    @Test
+    public void doWebPushNotificationTesting() throws Exception {
+
     }
 }

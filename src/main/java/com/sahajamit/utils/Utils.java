@@ -11,6 +11,8 @@ import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -26,6 +28,7 @@ public class Utils {
     private WebDriver driver;
     private String wsURL;
     private static ThreadLocal<Utils> instance = new ThreadLocal<Utils>();
+    private static final Logger logger = LoggerFactory.getLogger(Utils.class);
     public static Utils getInstance() {
         if (instance.get() == null) {
             instance.set(new Utils());
@@ -38,6 +41,7 @@ public class Utils {
     }
 
     public WebDriver launchBrowser(boolean isHeadless) throws IOException {
+        logger.info("Launching the Chrome...");
         os = System.getProperty("os.name").toLowerCase();
         Map<String, Object> prefs=new HashMap<String,Object>();
         //1-Allow, 2-Block, 0-default
@@ -45,8 +49,11 @@ public class Utils {
         LoggingPreferences logPrefs = new LoggingPreferences();
         logPrefs.enable(LogType.BROWSER, Level.ALL);
         ChromeOptions options = new ChromeOptions();
-        options.setExperimentalOption("useAutomationExtension", false);
-        options.addArguments(Arrays.asList("--start-maximized"));
+//        options.setExperimentalOption("useAutomationExtension", false);
+        options.addArguments("enable-automation");
+//        options.addArguments(Arrays.asList("--start-maximized"));
+        options.addArguments("start-maximized");
+        options.addArguments(Arrays.asList("--disable-extensions"));
         if(isHeadless){
             options.addArguments(Arrays.asList("--headless","--disable-gpu"));
         }
