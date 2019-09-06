@@ -49,11 +49,16 @@ public class Utils {
         LoggingPreferences logPrefs = new LoggingPreferences();
         logPrefs.enable(LogType.BROWSER, Level.ALL);
         ChromeOptions options = new ChromeOptions();
-//        options.setExperimentalOption("useAutomationExtension", false);
-        options.addArguments("enable-automation");
-//        options.addArguments(Arrays.asList("--start-maximized"));
-        options.addArguments("start-maximized");
+        options.addArguments(Arrays.asList("--start-maximized"));
+        options.addArguments(Arrays.asList("--ssl-protocol=any"));
+        options.addArguments(Arrays.asList("--ignore-ssl-errors=true"));
         options.addArguments(Arrays.asList("--disable-extensions"));
+        options.addArguments(Arrays.asList("--ignore-certificate-errors"));
+        options.setExperimentalOption("useAutomationExtension", false);
+//        options.addArguments("enable-automation");
+////        options.addArguments(Arrays.asList("--start-maximized"));
+//        options.addArguments("start-maximized");
+//        options.addArguments(Arrays.asList("--disable-extensions"));
         if(isHeadless){
             options.addArguments(Arrays.asList("--headless","--disable-gpu"));
         }
