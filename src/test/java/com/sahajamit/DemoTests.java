@@ -16,9 +16,7 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
-import org.openqa.selenium.chrome.ChromeOptions;
 
 import java.io.File;
 import java.io.IOException;
@@ -214,18 +212,30 @@ public class DemoTests {
         driver = utils.launchBrowser();
         driver.navigate().to("https://pushjs.org/#");
         UINotificationService uiNotificationService = UINotificationService.getInstance(driver);
-        uiNotificationService.startListener();
+        uiNotificationService.startWebNotificationListener();
         driver.findElement(By.id("demo_button")).click();
         utils.waitFor(2);
 
         Map<String,String> notificationFilter = new HashMap<>();
         notificationFilter.put("title", "Hello world!");
-        boolean flag = uiNotificationService.isNotificationPresent(notificationFilter);
-        uiNotificationService.stopListener();
+        boolean flag = uiNotificationService.isWebNotificationPresent(notificationFilter,"web");
+        uiNotificationService.stopWebNotificationListener();
     }
 
     @Test
     public void doWebPushNotificationTesting() throws Exception {
+        driver = utils.launchBrowser();
+        driver.navigate().to("https://framework.realtime.co/demo/web-push");
+        UINotificationService uiNotificationService = UINotificationService.getInstance(driver);
+        uiNotificationService.startPushNotificationListener();
+        driver.findElement(By.cssSelector("#sendButton")).click();
+        utils.waitFor(4);
+
+        Map<String,String> notificationFilter = new HashMap<>();
+        notificationFilter.put("title", "Web Push Notification");
+
+        boolean flag = uiNotificationService.isWebNotificationPresent(notificationFilter,"push");
+        uiNotificationService.stopPushNotificationListener();
 
     }
 }
