@@ -206,36 +206,4 @@ public class DemoTests {
         utils.waitFor(3);
         utils.waitFor(60);
     }
-
-    @Test
-    public void doWebNotificationTesting() throws Exception {
-        driver = utils.launchBrowser();
-        driver.navigate().to("https://pushjs.org/#");
-        UINotificationService uiNotificationService = UINotificationService.getInstance(driver);
-        uiNotificationService.startWebNotificationListener();
-        driver.findElement(By.id("demo_button")).click();
-        utils.waitFor(2);
-
-        Map<String,String> notificationFilter = new HashMap<>();
-        notificationFilter.put("title", "Hello world!");
-        boolean flag = uiNotificationService.isWebNotificationPresent(notificationFilter,"web");
-        uiNotificationService.stopWebNotificationListener();
-    }
-
-    @Test
-    public void doWebPushNotificationTesting() throws Exception {
-        driver = utils.launchBrowser();
-        driver.navigate().to("https://framework.realtime.co/demo/web-push");
-        UINotificationService uiNotificationService = UINotificationService.getInstance(driver);
-        uiNotificationService.startPushNotificationListener();
-        driver.findElement(By.cssSelector("#sendButton")).click();
-        utils.waitFor(4);
-
-        Map<String,String> notificationFilter = new HashMap<>();
-        notificationFilter.put("title", "Web Push Notification");
-
-        boolean flag = uiNotificationService.isWebNotificationPresent(notificationFilter,"push");
-        uiNotificationService.stopPushNotificationListener();
-
-    }
 }
