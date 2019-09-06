@@ -44,7 +44,7 @@ public class NotificationTests {
 
         Map<String,String> notificationFilter = new HashMap<>();
         notificationFilter.put("title", "Hello world!");
-        boolean flag = uiNotificationService.isWebNotificationPresent(notificationFilter,"web");
+        boolean flag = uiNotificationService.isNotificationPresent(notificationFilter,"web");
         uiNotificationService.stopWebNotificationListener();
     }
 
@@ -60,7 +60,7 @@ public class NotificationTests {
         Map<String,String> notificationFilter = new HashMap<>();
         notificationFilter.put("title", "Web Push Notification");
 
-        boolean flag = uiNotificationService.isWebNotificationPresent(notificationFilter,"push");
+        boolean flag = uiNotificationService.isNotificationPresent(notificationFilter,"push");
         uiNotificationService.stopPushNotificationListener();
 
     }

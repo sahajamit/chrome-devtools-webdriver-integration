@@ -45,7 +45,7 @@ public class UINotificationService {
     }
 
 
-    public boolean isWebNotificationPresent(Map<String,String> filter, String notificationType){
+    public boolean isNotificationPresent(Map<String,String> filter, String notificationType){
         ArrayList<Map> notifications;
         if(notificationType.equalsIgnoreCase("web"))
             notifications = (ArrayList<Map>) UIUtils.getInstance().executeJavaScript("return window.notifications;");
