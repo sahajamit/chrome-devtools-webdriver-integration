@@ -53,7 +53,7 @@ public class NotificationTests {
         driver = utils.launchBrowser();
         driver.navigate().to("https://framework.realtime.co/demo/web-push");
         UINotificationService uiNotificationService = UINotificationService.getInstance(driver);
-        uiNotificationService.startPushNotificationListener();
+        uiNotificationService.startPushNotificationListener("https://framework.realtime.co/demo/web-push");
         driver.findElement(By.cssSelector("#sendButton")).click();
         utils.waitFor(4);
 

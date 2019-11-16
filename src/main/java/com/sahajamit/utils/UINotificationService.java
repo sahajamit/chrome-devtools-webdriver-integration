@@ -17,7 +17,7 @@ public class UINotificationService {
     private static final String startWebNotificationJsScript = "window.notifications = []; window.DefaultNotification = window.Notification; (function () { function notificationCallback(title, opt) { console.log(\"notification title: \", title); console.log(\"notification body: \", opt.body); console.log(\"notification tag: \", opt.tag); console.log(\"notification icon: \", opt.icon); } const handler = { construct(target, args) { notificationCallback(...args); var notification = new target(...args); window.notifications.push(notification); return notification; } }; const ProxifiedNotification = new Proxy(Notification, handler); window.Notification = ProxifiedNotification; })();";
     private static final String stopWebNotificationJsScript = "window.notifications = []; window.Notification = window.DefaultNotification;";
 
-    private static final String startPushNotificationJsScript = "window.notificationsMap = Object.create(null); async function getServiceWorkerRegistration(){ window.myServiceWorkerRegistration = await navigator.serviceWorker.getRegistration(\"https://framework.realtime.co/demo/web-push/\"); return window.myServiceWorkerRegistration;}; async function getNotifications() { window.myNotifications = await window.myServiceWorkerRegistration.getNotifications();}; window.notificationListener = setInterval(async function() { console.log(\"checking for notifications...\"); await getServiceWorkerRegistration(); await getNotifications(); for(var key in window.myNotifications){ window.notificationsMap[window.myNotifications[key].tag] = window.myNotifications[key]; }; }, 2000);";
+    private static final String startPushNotificationJsScript = "window.notificationsMap = Object.create(null); async function getServiceWorkerRegistration(){ window.myServiceWorkerRegistration = await navigator.serviceWorker.getRegistration(\"%s\"); return window.myServiceWorkerRegistration;}; async function getNotifications() { window.myNotifications = await window.myServiceWorkerRegistration.getNotifications();}; window.notificationListener = setInterval(async function() { console.log(\"checking for notifications...\"); await getServiceWorkerRegistration(); await getNotifications(); for(var key in window.myNotifications){ window.notificationsMap[window.myNotifications[key].tag] = window.myNotifications[key]; }; }, 2000);";
     private static final String stopPushNotificationJsScript = "clearInterval(window.notificationListener); window.notificationsMap = Object.create(null); window.notifications = [] ;";
     private static final String getPushNotificationsJsScript = "function getCollectedNotifications(){ window.notifications = [] ; var count = 0; for (var prop in window.notificationsMap) { count++; window.notifications.push(window.notificationsMap[prop]); } console.log(\"Total notifications count is: \" + count); return window.notifications;}; return getCollectedNotifications();";
 
@@ -33,8 +33,8 @@ public class UINotificationService {
         UIUtils.getInstance().executeJavaScript(startWebNotificationJsScript);
     }
 
-    public void startPushNotificationListener(){
-        UIUtils.getInstance().executeJavaScript(startPushNotificationJsScript);
+    public void startPushNotificationListener(String notificationServiceURL){
+        UIUtils.getInstance().executeJavaScript(String.format(startPushNotificationJsScript,notificationServiceURL));
     }
 
     public void stopWebNotificationListener(){
