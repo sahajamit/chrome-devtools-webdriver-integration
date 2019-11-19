@@ -149,53 +149,31 @@ public class Utils {
         return wsURL.replace(id,targetID);
     }
 
-    public String getWebSocketDebuggerUrlFromDriverLogs(WebDriver driver) throws IOException {
-        LogEntries logEntries = driver.manage().logs().get(LogType.DRIVER);
-        for (LogEntry entry : logEntries) {
-            if(entry.getMessage().contains("webSocketDebuggerUrl")){
-                JSONObject jsonMessage = new JSONObject(entry.getMessage().replace("DevTools HTTP Response:",""));
-                System.out.println(String.format("[%s] [%s]: %s",entry.getTimestamp(),entry.getLevel(),entry.getMessage()));
-                return jsonMessage.getString("webSocketDebuggerUrl");
+    public String getWebSocketDebuggerUrlFromDriverLogs() throws IOException {
+        String webSocketDebuggerUrl = "";
+        String urlString = "http://localhost:9222/json";
+
+        URL url = new URL(urlString);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        BufferedReader reader =
+                new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        String json = org.apache.commons.io.IOUtils.toString(reader);
+        JSONArray jsonArray = new JSONArray(json);
+        for(int i=0; i<jsonArray.length(); i++){
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            if(jsonObject.getString("type").equals("page")){
+                webSocketDebuggerUrl = jsonObject.getString("webSocketDebuggerUrl");
+                break;
             }
         }
-        throw new RuntimeException("Not able to get the WS Debugger URL");
+
+        if(webSocketDebuggerUrl.equals(""))
+            throw new RuntimeException("webSocketDebuggerUrl not found");
+
+        return webSocketDebuggerUrl;
     }
 
     public String getWebSocketDebuggerUrl() throws IOException {
-        String webSocketDebuggerUrl = "";
-        File file = new File(System.getProperty("user.dir") + "/target/chromedriver.log");
-        try {
-
-            Scanner sc = new Scanner(file);
-            String urlString = "";
-            while (sc.hasNextLine()) {
-                String line = sc.nextLine();
-                if(line.contains("DevTools HTTP Request: http://localhost")){
-                    urlString = line.substring(line.indexOf("http"),line.length()).replace("/version","");
-                    break;
-                }
-            }
-            sc.close();
-
-            URL url = new URL(urlString);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String json = org.apache.commons.io.IOUtils.toString(reader);
-            JSONArray jsonArray = new JSONArray(json);
-            for(int i=0; i<jsonArray.length(); i++){
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                if(jsonObject.getString("type").equals("page")){
-                    webSocketDebuggerUrl = jsonObject.getString("webSocketDebuggerUrl");
-                    break;
-                }
-            }
-        }
-        catch (FileNotFoundException e) {
-            throw e;
-        }
-        if(webSocketDebuggerUrl.equals(""))
-            throw new RuntimeException("webSocketDebuggerUrl not found");
-        return webSocketDebuggerUrl;
+        return getWebSocketDebuggerUrlFromDriverLogs();
     }
 }

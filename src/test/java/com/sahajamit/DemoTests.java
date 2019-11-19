@@ -20,6 +20,7 @@ import org.openqa.selenium.chrome.ChromeDriverService;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -210,9 +211,9 @@ public class DemoTests {
     @Test
     public void dockerTest() throws Exception {
         String URL = "https://framework.realtime.co/demo/web-push";
-        driver = utils.launchBrowser();
-//        driver = utils.launchBrowser(true,new URL("http://127.0.0.1:4444/wd/hub"));
-        wsURL = utils.getWebSocketDebuggerUrlFromDriverLogs(driver);
+//        driver = utils.launchBrowser();
+        driver = utils.launchBrowser(true,new URL("http://127.0.0.1:4444/wd/hub"));
+        wsURL = utils.getWebSocketDebuggerUrlFromDriverLogs();
 //        String wsURL1 =  wsURL.replace("localhost","127.0.0.1");
         CDPClient = new CDPClient(wsURL);
         int id = Utils.getInstance().getDynamicID();
