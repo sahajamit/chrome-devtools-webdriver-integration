@@ -9,7 +9,6 @@ import com.neovisionaries.ws.client.WebSocketFactory;
 import com.sahajamit.Exceptions.MessageTimeOutException;
 import com.sahajamit.utils.SSLUtil;
 import com.sahajamit.utils.Utils;
-import com.sun.xml.internal.ws.protocol.xml.XMLMessageException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
