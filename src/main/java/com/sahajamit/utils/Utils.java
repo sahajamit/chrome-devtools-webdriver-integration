@@ -1,6 +1,7 @@
 package com.sahajamit.utils;
 
-import com.neovisionaries.ws.client.WebSocketException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.openqa.selenium.WebDriver;
@@ -58,6 +59,10 @@ public class Utils {
         Map<String, Object> prefs=new HashMap<String,Object>();
         //1-Allow, 2-Block, 0-default
         prefs.put("profile.default_content_setting_values.notifications", 1);
+
+        //0 is default , 1 is enable and 2 is disable
+        prefs.put("profile.content_settings.exceptions.clipboard", getClipBoardSettingsMap(1));
+
         LoggingPreferences logPrefs = new LoggingPreferences();
         logPrefs.enable(LogType.BROWSER, Level.ALL);
         ChromeOptions options = new ChromeOptions();
@@ -70,15 +75,9 @@ public class Utils {
         options.addArguments(Arrays.asList("--remote-debugging-address=0.0.0.0"));
 
         options.setExperimentalOption("useAutomationExtension", false);
-//        options.addArguments("enable-automation");
-////        options.addArguments(Arrays.asList("--start-maximized"));
-//        options.addArguments("start-maximized");
-//        options.addArguments(Arrays.asList("--disable-extensions"));
         if(isHeadless){
             options.addArguments(Arrays.asList("--headless","--disable-gpu"));
         }
-//        options.addArguments(Arrays.asList("--start-maximized","--remote-debugging-port=9222"));
-//        options.setBinary("<chromebinary path>");
         options.setExperimentalOption("prefs",prefs);
         options.setCapability("goog:loggingPrefs", loggingPreferences);
 
@@ -105,14 +104,11 @@ public class Utils {
             if(Objects.isNull(remoteDriverURL))
                 driver = new RemoteWebDriver(service.getUrl(),crcapabilities);
             else
-                driver = new RemoteWebDriver(new URL("http://127.0.0.1:4444/wd/hub"),crcapabilities);
+                driver = new RemoteWebDriver(remoteDriverURL,crcapabilities);
         }catch (Exception e){
             throw e;
         }
 
-//        wsURL = String.format("ws://localhost:9222/devtools/page/%s",driver.getWindowHandle().replace("CDwindow-",""));
-//        wsURL = getWebSocketDebuggerUrl();
-//        wsURL = getWebSocketDebuggerUrlFromDriverLogs(driver);
         UIUtils.getInstance().setDriver(driver);
         return driver;
     }
@@ -176,4 +172,17 @@ public class Utils {
     public String getWebSocketDebuggerUrl() throws IOException {
         return getWebSocketDebuggerUrlFromDriverLogs();
     }
+
+    private static Map<String,Object> getClipBoardSettingsMap(int settingValue) throws JsonProcessingException {
+        Map<String,Object> map = new HashMap<>();
+        map.put("last_modified",String.valueOf(System.currentTimeMillis()));
+        map.put("setting", settingValue);
+        Map<String,Object> cbPreference = new HashMap<>();
+        cbPreference.put("[*.],*",map);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(cbPreference);
+        logger.info("clipboardSettingJson: " + json);
+        return cbPreference;
+    }
 }
+
