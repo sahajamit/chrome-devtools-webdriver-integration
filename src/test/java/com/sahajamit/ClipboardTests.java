@@ -1,6 +1,5 @@
 package com.sahajamit;
 
-import com.sahajamit.utils.UINotificationService;
 import com.sahajamit.utils.UIUtils;
 import com.sahajamit.utils.Utils;
 import org.junit.After;
@@ -13,8 +12,7 @@ import org.openqa.selenium.chrome.ChromeDriverService;
 
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
-import java.util.HashMap;
-import java.util.Map;
+import java.net.URL;
 import java.util.Objects;
 
 public class ClipboardTests {
@@ -56,7 +54,7 @@ public class ClipboardTests {
     @Test
     public void doRemoteClipboardReadTest() throws Exception {
         String text = "Mussum ipsum cacilds, vidis litro abertis. Consetis adipiscings elitis. Pra lá , depois divoltis porris, paradis. Paisis, filhis, espiritis santis. Mé faiz elementum girarzis, nisi eros vermeio, in elementis mé pra quem é amistosis quis leo. Manduma pindureta quium dia nois paga.";
-        driver = utils.launchBrowser();
+        driver = utils.launchBrowser(true,new URL("http://127.0.0.1:4444/wd/hub"));
         driver.navigate().to("https://googlechrome.github.io/samples/async-clipboard/");
 
         driver.findElement(By.cssSelector("textarea#out")).sendKeys(text);
