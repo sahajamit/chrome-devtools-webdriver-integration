@@ -1,5 +1,7 @@
 package com.sahajamit.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neovisionaries.ws.client.WebSocketException;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -46,6 +48,8 @@ public class Utils {
         Map<String, Object> prefs=new HashMap<String,Object>();
         //1-Allow, 2-Block, 0-default
         prefs.put("profile.default_content_setting_values.notifications", 1);
+        //0 is default , 1 is enable and 2 is disable
+        prefs.put("profile.content_settings.exceptions.clipboard", getClipBoardSettingsMap(1));
         LoggingPreferences logPrefs = new LoggingPreferences();
         logPrefs.enable(LogType.BROWSER, Level.ALL);
         ChromeOptions options = new ChromeOptions();
@@ -161,5 +165,17 @@ public class Utils {
         if(webSocketDebuggerUrl.equals(""))
             throw new RuntimeException("webSocketDebuggerUrl not found");
         return webSocketDebuggerUrl;
+    }
+
+    private static Map<String,Object> getClipBoardSettingsMap(int settingValue) throws JsonProcessingException {
+        Map<String,Object> map = new HashMap<>();
+        map.put("last_modified",String.valueOf(System.currentTimeMillis()));
+        map.put("setting", settingValue);
+        Map<String,Object> cbPreference = new HashMap<>();
+        cbPreference.put("[*.],*",map);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(cbPreference);
+        logger.info("clipboardSettingJson: " + json);
+        return cbPreference;
     }
 }
