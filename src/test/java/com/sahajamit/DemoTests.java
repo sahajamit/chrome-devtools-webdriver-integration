@@ -17,6 +17,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriverService;
+import org.openqa.selenium.logging.LogEntries;
+import org.openqa.selenium.logging.LogType;
 
 import java.io.File;
 import java.io.IOException;
@@ -222,5 +224,26 @@ public class DemoTests {
         ServiceWorker serviceWorker = CDPClient.getServiceWorker(URL,10, "activated");
         System.out.println(serviceWorker.toString());
         Assert.assertEquals(serviceWorker.getStatus(),"activated");
+    }
+
+    @Test
+    public void getRequestPayload() throws Exception {
+        String URL = "https://github.com/";
+        driver = utils.launchBrowser(false);
+        driver.navigate().to(URL);
+        Thread.sleep(5000);
+        LogEntries logEntries = driver.manage().logs().get(LogType.PERFORMANCE);
+
+        logEntries.forEach(entry->{
+            JSONObject messageJSON = new JSONObject(entry.getMessage());
+            try{
+                if(messageJSON.getJSONObject("message").getJSONObject("params").getJSONObject("request").getString("url").contains("api.github.com")){
+                    System.out.println(messageJSON.getJSONObject("message").getJSONObject("params").getJSONObject("request").getString("postData"));
+                    return;
+                }
+            }catch (Exception e){
+                //ignore
+            }
+        });
     }
 }

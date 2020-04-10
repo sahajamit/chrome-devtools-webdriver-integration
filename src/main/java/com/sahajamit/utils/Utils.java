@@ -7,8 +7,6 @@ import org.json.JSONObject;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.logging.LogEntries;
-import org.openqa.selenium.logging.LogEntry;
 import org.openqa.selenium.logging.LogType;
 import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.remote.CapabilityType;
@@ -103,8 +101,9 @@ public class Utils {
         try{
             if(Objects.isNull(remoteDriverURL))
                 driver = new RemoteWebDriver(service.getUrl(),crcapabilities);
-            else
-                driver = new RemoteWebDriver(remoteDriverURL,crcapabilities);
+            else {
+                driver = new RemoteWebDriver(remoteDriverURL, crcapabilities);
+            }
         }catch (Exception e){
             throw e;
         }
